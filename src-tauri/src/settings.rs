@@ -461,6 +461,14 @@ pub struct AppSettings {
     pub mute_while_recording: bool,
     #[serde(default)]
     pub append_trailing_space: bool,
+    /// Fixed text inserted verbatim before every non-empty transcript, e.g.
+    /// "[voice input] ". Empty disables it.
+    #[serde(default)]
+    pub transcript_prefix: String,
+    /// Fixed text inserted verbatim after every non-empty transcript. Empty
+    /// disables it.
+    #[serde(default)]
+    pub transcript_suffix: String,
     #[serde(default = "default_app_language")]
     pub app_language: String,
     #[serde(default = "default_theme")]
@@ -950,6 +958,8 @@ pub fn get_default_settings() -> AppSettings {
         post_process_selected_prompt_id: None,
         mute_while_recording: false,
         append_trailing_space: false,
+        transcript_prefix: String::new(),
+        transcript_suffix: String::new(),
         app_language: default_app_language(),
         theme: default_theme(),
         experimental_enabled: false,

@@ -419,6 +419,20 @@ fn resolve_effective_language(app: &AppHandle, settings: &AppSettings) -> String
     }
 }
 
+/// Wrap a transcript in the user's fixed prefix/suffix (e.g. "[voice input] ").
+///
+/// Both affixes are inserted verbatim — no trimming, no separator is invented —
+/// so the result is exactly what the user configured. An empty transcript is
+/// returned untouched: a silent or cancelled recording must never paste the
+/// affixes on their own.
+pub(crate) fn apply_transcript_affixes(text: &str, prefix: &str, suffix: &str) -> String {
+    if text.trim().is_empty() || (prefix.is_empty() && suffix.is_empty()) {
+        return text.to_string();
+    }
+
+    format!("{}{}{}", prefix, text, suffix)
+}
+
 pub(crate) async fn process_transcription_output(
     app: &AppHandle,
     transcription: &str,
@@ -457,6 +471,15 @@ pub(crate) async fn process_transcription_output(
     } else if final_text != transcription {
         post_processed_text = Some(final_text.clone());
     }
+
+    // Mechanical affixes are the last step: they decorate what is actually
+    // typed out, so an LLM prompt never sees them and history keeps the plain
+    // transcript.
+    final_text = apply_transcript_affixes(
+        &final_text,
+        &settings.transcript_prefix,
+        &settings.transcript_suffix,
+    );
 
     ProcessedTranscription {
         final_text,
@@ -952,8 +975,8 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
 #[cfg(test)]
 mod tests {
     use super::{
-        complete_unless_cancelled, is_blank_transcription, should_use_streaming_overlay,
-        strip_think_block,
+        apply_transcript_affixes, complete_unless_cancelled, is_blank_transcription,
+        should_use_streaming_overlay, strip_think_block,
     };
     use crate::settings::OverlayStyle;
     use std::future;
@@ -1026,6 +1049,30 @@ mod tests {
         assert_eq!(
             strip_think_block("<think>never closed"),
             "<think>never closed"
+        );
+    }
+
+    #[test]
+    fn transcript_affixes_wrap_text_verbatim() {
+        assert_eq!(
+            apply_transcript_affixes("hello", "[voice input] ", ""),
+            "[voice input] hello"
+        );
+        assert_eq!(
+            apply_transcript_affixes("hello", "", " (dictated)"),
+            "hello (dictated)"
+        );
+        assert_eq!(apply_transcript_affixes("hello", "<<", ">>"), "<<hello>>");
+        // No affixes configured: the transcript is untouched.
+        assert_eq!(apply_transcript_affixes("hello", "", ""), "hello");
+    }
+
+    #[test]
+    fn transcript_affixes_skip_empty_transcripts() {
+        assert_eq!(apply_transcript_affixes("", "[voice input] ", "!"), "");
+        assert_eq!(
+            apply_transcript_affixes("   ", "[voice input] ", "!"),
+            "   "
         );
     }
 

@@ -357,6 +357,16 @@
           "ctrlEnter": "Ctrl+Enter"
         }
       },
+      "transcriptAffixes": {
+        "title": "Prefix and Suffix",
+        "description": "Add fixed text before and after every transcript, for example \"[voice input] \". The text is inserted exactly as typed, including spaces, after post-processing. Empty fields add nothing.",
+        "prefixLabel": "Prefix",
+        "suffixLabel": "Suffix",
+        "prefixPlaceholder": "Prefix (e.g. \"[voice input] \")",
+        "suffixPlaceholder": "Suffix",
+        "preview": "Preview:",
+        "sample": "your transcript"
+      },
       "translateToEnglish": {
         "label": "Translate to English",
         "description": "Automatically translate speech from other languages to English during transcription."
