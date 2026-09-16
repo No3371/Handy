@@ -1269,6 +1269,24 @@ pub fn change_append_trailing_space_setting(app: AppHandle, enabled: bool) -> Re
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_transcript_prefix_setting(app: AppHandle, prefix: String) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.transcript_prefix = prefix;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_transcript_suffix_setting(app: AppHandle, suffix: String) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.transcript_suffix = suffix;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_lazy_stream_close_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.lazy_stream_close = enabled;
